@@ -2,74 +2,100 @@
 #
 # This class is able to install or remove proofpoint on a node.
 #
-# [Add description - What does this module do on a node?] FIXME/TODO
-#
+# [Add description - What does this module do on a node?]
 #
 # === Parameters
+#@param client_id
+#  TODO
 #
-# [*ensure*]
-#   String. Controls if the managed resources shall be <tt>present</tt> or
-#   <tt>absent</tt>. If set to <tt>absent</tt>:
-#   * The managed software packages are being uninstalled.
-#   * Any traces of the packages will be purged as good as possible. This may
-#     include existing configuration files. The exact behavior is provider
-#     dependent. Q.v.:
-#     * Puppet type reference: {package, "purgeable"}[http://j.mp/xbxmNP]
-#     * {Puppet's package provider source code}[http://j.mp/wtVCaL]
-#   * System modifications (if any) will be reverted as good as possible
-#     (e.g. removal of created users, services, changed log settings, ...).
-#   * This is thus destructive and should be used with care.
-#   Defaults to <tt>present</tt>.
+#@param client_secret
+#  TODO
 #
-# [*autoupgrade*]
-#   Boolean. If set to <tt>true</tt>, any managed package gets upgraded
-#   on each Puppet run when the package provider is able to find a newer
-#   version than the present one. The exact behavior is provider dependent.
-#   Q.v.:
-#   * Puppet type reference: {package, "upgradeable"}[http://j.mp/xbxmNP]
-#   * {Puppet's package provider source code}[http://j.mp/wtVCaL]
-#   Defaults to <tt>false</tt>.
+#@param relayuser_name
+#  TODO
 #
-# The default values for the parameters are set in proofpoint::params. Have
-# a look at the corresponding <tt>params.pp</tt> manifest file if you need more
-# technical information about them.
+#@param relayuser_password
+#  TODO
 #
+#@param fromaddress
+#  The email address that shows up in FROM: header.
 #
-# === Examples
+#@param toaddress
+#  The REPLY-TO: address
 #
-# * Installation:
-#     class { 'proofpoint': }
+#@param listeners
+#  A Hash of listeners
 #
-# * Removal/decommissioning:
-#     class { 'proofpoint':
-#       ensure => 'absent',
-#     }
+#@param package_name
+#  The name of the RPM package to be installed.
 #
+#@param service_name
+#  The name of the service to be managed.
+#
+#@param package_ensure
+#  Whether or not to install the package.
+#
+#@param service_ensure
+#  Ensure the client is started/stopped/running, etc.
+#
+#@param service_enable
+#  Enable the client on reboot.  true/false
+#
+#@param storebounces
+#  Should bounced email be stored locally for future reference?
+#
+#@param storebounces_path
+#  The path where bounded email will be stored locally.
+#
+#@param forwardemail
+#  TODO
+#
+#@param tlsmode
+#  TODO
 #
 # === Authors
 #
 # * Brian Schonecker <mailto:bschonec@gmail.com>
-#
-class proofpoint(
-  $ensure      = $proofpoint::params::ensure,
-  $autoupgrade = $proofpoint::params::autoupgrade
-) inherits proofpoint::params {
-
-  #### Validate parameters
-
-  # ensure
-  if ! ($ensure in [ 'present', 'absent' ]) {
-    fail("\"${ensure}\" is not a valid ensure parameter value")
+class proofpoint (
+  String[1]                   $client_id,
+  String[1]                   $client_secret,
+  String[1]                   $relayuser_name,
+  String[1]                   $relayuser_password,
+  String  $fromaddress = 'from-nobody@example.com',
+  String  $toaddress   = 'to-nobody@example.com',
+  Array[Hash] $listeners = [
+    { 'port' => 25,  'type' => 'SMTP' },
+    { 'port' => 587, 'type' => 'SMTP' },
+    { 'port' => 465, 'type' => 'SMTP' },
+  ],
+  Boolean $storebounces   = true,
+  String  $storebounces_path     = '/var/spool/cmgw/nondeliver',
+  Boolean $forwardemail   = true,
+  String  $tlsmode     = 'forced TLS',
+  String[1]                   $package_name   = 'ser-connector',
+  String[1]                   $service_name   = 'ser-connector',
+  Enum['absent', 'installed'] $package_ensure = 'installed',
+  Enum['running', 'stopped']  $service_ensure = 'running',
+  Boolean                     $service_enable = true,
+) {
+  package { $package_name:
+    ensure => $package_ensure,
   }
 
-  # autoupgrade
-  validate_bool($autoupgrade)
+  file { '/opt/ser/config/config.yaml':
+    ensure  => file,
+    content => template('proofpoint/config.yaml.erb'),
+    owner   => $package_name,
+    group   => 'root',
+    mode    => '0644',
+    before  => Service[$service_name],
+    require => Package[$package_name],
+    notify  => Service[$service_name],
+  }
 
-
-
-  #### Manage actions
-
-  # package(s)
-  class { 'proofpoint::package': }
-
+  service { $service_name:
+    ensure  => $service_ensure,
+    enable  => $service_enable,
+    require => Package[$package_name],
+  }
 }

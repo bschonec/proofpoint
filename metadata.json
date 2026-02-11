@@ -1,0 +1,28 @@
+{
+  "name": "bschonec-proofpoint",
+  "version": "0.0.1", 
+  "author": "Brian Schonecker",
+  "summary": "Puppet module to install Proofpoint Secure Email Relay Server",
+  "license": "Apache-2.0",
+  "source": "https://github.com/bschonec/proofpoint.git",
+  "dependencies": [
+
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "9"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 7.0.0 < 9.0.0"
+    }
+  ],
+  "pdk-version": "2.4.0",
+  "template-url": "pdk-default#2.4.0",
+  "template-ref": "tags/2.4.0-0-gfa6b6d2"
+}
