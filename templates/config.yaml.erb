@@ -1,0 +1,39 @@
+# Managed by Puppet. DO NOT EDIT.
+
+User:
+  ConnectorUser:
+    ClientID: "<%= @client_id %>"
+    ClientSecret: "<%= @client_secret %>"
+  
+  RelayUser:
+    Username: "<%= @relayuser_name %>"
+    Password: "<%= @relayuser_password %>"
+
+Listener:
+<% @listeners.each do |listener| -%>
+  - Port: <%= listener['port'] %>
+    Type: <%= listener['type'] %>
+<% if listener['certificate'] -%>
+    Certificate: <%= listener['certificate'] %>
+<% end -%>
+<% if listener['key'] -%>
+    Key: <%= listener['key'] %>
+<% end -%>
+<% if listener['starttls'] -%>
+    StartTLS: <%= listener['starttls'] %>
+<% end -%>
+<% if listener['passphrase'] -%>
+    Passphrase: <%= listener['passphrase'] %>
+<% end -%>
+<% end %>
+
+NDR:
+  StoreBounces:
+    Enable: <%= @storebounces %>
+    Path: '<%= @storebounces_path %>'
+  ForwardEmail:
+    Enable: <%= @forwardemail %>
+    FromAddress: "<%= @fromaddress %>"
+    ToAddress: "<%= @toaddress %>"
+    TlsMode: "<%= @tlsmode %>"
+
